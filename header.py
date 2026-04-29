@@ -147,13 +147,13 @@ def _render_styles() -> str:
 
 .cp-app-header-user-button {
   width: auto;
-  min-width: 42px;
-  height: 42px;
-  padding: 0 12px 0 6px;
-  gap: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.08);
+  min-width: 0;
+  height: auto;
+  padding: 0;
+  gap: 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -349,7 +349,6 @@ def _render_user_menu(
         aria-label="{user_label}"
       >
         <span class="cp-app-header-roundel" aria-hidden="true">{initials}</span>
-        <span class="cp-app-header-user-menu-label" aria-hidden="true">{user_label}</span>
       </button>
       <div class="cp-app-header-menu" id="cp-header-user-menu" role="menu" hidden>
         {menu_links}
