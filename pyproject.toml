@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cambridgepicture-shared"
+version = "0.1.0"
+description = "Shared Flask authentication helpers for Cambridge Picture apps."
+requires-python = ">=3.11"
+dependencies = [
+    "Flask>=3.0",
+    "Werkzeug>=3.0",
+]
+
+[tool.setuptools]
+packages = ["shared"]
+
+[tool.setuptools.package-dir]
+shared = "."
