@@ -75,15 +75,20 @@ def _render_styles() -> str:
 .cp-app-header {
   background: linear-gradient(180deg, #2a2d31 0%, #222529 100%);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 28px 28px 0 0;
   color: #f4f6f8;
+  box-sizing: border-box;
+  overflow: visible;
+  width: 100%;
 }
 
 .cp-app-header-inner {
+  position: relative;
   display: grid;
   grid-template-columns: minmax(92px, auto) 1fr minmax(92px, auto);
   align-items: center;
   gap: 12px;
-  max-width: 1280px;
+  max-width: 100%;
   margin: 0 auto;
   padding: 14px 18px 10px;
 }
@@ -91,7 +96,6 @@ def _render_styles() -> str:
 .cp-app-header-logo-link,
 .cp-app-header-title,
 .cp-app-header-user-button,
-.cp-app-header-home,
 .cp-app-header-link {
   color: inherit;
 }
@@ -99,28 +103,41 @@ def _render_styles() -> str:
 .cp-app-header-logo {
   display: block;
   width: auto;
-  height: 30px;
-  max-width: 110px;
+  height: 68px;
+  max-width: 248px;
   object-fit: contain;
 }
 
 .cp-app-header-title-wrap {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
   min-width: 0;
+  max-width: calc(100% - 320px);
   text-align: center;
+  overflow: hidden;
+  pointer-events: none;
 }
 
 .cp-app-header-title {
-  display: inline-block;
+  display: block;
   font-size: 1.15rem;
   font-weight: 700;
   letter-spacing: 0;
   line-height: 1.2;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .cp-app-header-user {
-  justify-self: end;
-  position: relative;
+  position: absolute;
+  right: 18px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
 }
 
 .cp-app-header-user-spacer {
@@ -129,8 +146,11 @@ def _render_styles() -> str:
 }
 
 .cp-app-header-user-button {
-  width: 42px;
+  width: auto;
+  min-width: 42px;
   height: 42px;
+  padding: 0 12px 0 6px;
+  gap: 8px;
   border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.08);
@@ -138,7 +158,7 @@ def _render_styles() -> str:
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  padding: 0;
+  white-space: nowrap;
 }
 
 .cp-app-header-user-button-static {
@@ -191,7 +211,7 @@ def _render_styles() -> str:
 }
 
 .cp-app-header-nav {
-  max-width: 1280px;
+  max-width: 100%;
   margin: 0 auto;
   padding: 0 18px 12px;
   display: flex;
@@ -200,7 +220,6 @@ def _render_styles() -> str:
   flex-wrap: wrap;
 }
 
-.cp-app-header-home,
 .cp-app-header-link {
   display: inline-flex;
   align-items: center;
@@ -214,8 +233,6 @@ def _render_styles() -> str:
   background: rgba(255, 255, 255, 0.05);
 }
 
-.cp-app-header-home:hover,
-.cp-app-header-home:focus-visible,
 .cp-app-header-link:hover,
 .cp-app-header-link:focus-visible {
   background: rgba(255, 255, 255, 0.11);
@@ -226,15 +243,53 @@ def _render_styles() -> str:
   margin: 0;
 }
 
-@media (max-width: 720px) {
+@media (max-width: 960px) {
   .cp-app-header-inner {
-    grid-template-columns: auto 1fr auto;
-    padding-inline: 14px;
+    padding: 12px 14px 6px;
+  }
+
+  .cp-app-header-title-wrap {
+    max-width: calc(100% - 80px);
   }
 
   .cp-app-header-logo {
-    height: 26px;
-    max-width: 90px;
+    width: 140px;
+    height: 50px;
+    max-width: none;
+    object-fit: cover;
+    object-position: left center;
+  }
+
+  .cp-app-header-logo-link {
+    width: 50px;
+    height: 50px;
+    overflow: hidden;
+  }
+
+  .cp-app-header-user {
+    right: 14px;
+  }
+
+  .cp-app-header-user-button {
+    width: 38px;
+    height: 38px;
+    min-width: 38px;
+    padding: 0;
+    justify-content: center;
+  }
+
+  .cp-app-header-roundel {
+    width: 30px;
+    height: 30px;
+  }
+
+  .cp-app-header-user-menu-label {
+    display: none;
+  }
+
+  .cp-app-header-user-spacer {
+    width: 38px;
+    height: 38px;
   }
 
   .cp-app-header-title {
@@ -242,19 +297,33 @@ def _render_styles() -> str:
   }
 
   .cp-app-header-nav {
-    padding-inline: 14px;
+    padding: 0 14px 10px;
+    gap: 8px;
   }
 }
 </style>
 """
 
 
-def _render_user_menu(user: Any, user_menu_items: Iterable[Any] | None) -> str:
+def _render_user_menu(
+    user: Any,
+    admin_href: str | None,
+    admin_label: str,
+    user_menu_items: Iterable[Any] | None,
+) -> str:
     initials = escape(_user_initials(user))
     user_label = escape(str(getattr(user, "display_name", "") or getattr(user, "email", "") or "User"))
     items = _normalize_links(user_menu_items)
+    admin_item = ""
+    if admin_href:
+        admin_item = f'<a class="cp-app-header-menu-link" role="menuitem" href="{escape(admin_href)}">{escape(admin_label)}</a>'
 
-    if not items:
+    menu_links = admin_item + "".join(
+        f'<a class="cp-app-header-menu-link" role="menuitem" href="{escape(href)}">{escape(label)}</a>'
+        for label, href in items
+    )
+
+    if not menu_links:
         return f"""
     <div class="cp-app-header-user" aria-label="{user_label}">
       <div
@@ -266,11 +335,6 @@ def _render_user_menu(user: Any, user_menu_items: Iterable[Any] | None) -> str:
       </div>
     </div>
     """
-
-    menu_links = "".join(
-        f'<a class="cp-app-header-menu-link" role="menuitem" href="{escape(href)}">{escape(label)}</a>'
-        for label, href in items
-    )
 
     return f"""
     <div class="cp-app-header-user">
@@ -285,6 +349,7 @@ def _render_user_menu(user: Any, user_menu_items: Iterable[Any] | None) -> str:
         aria-label="{user_label}"
       >
         <span class="cp-app-header-roundel" aria-hidden="true">{initials}</span>
+        <span class="cp-app-header-user-menu-label" aria-hidden="true">{user_label}</span>
       </button>
       <div class="cp-app-header-menu" id="cp-header-user-menu" role="menu" hidden>
         {menu_links}
@@ -340,20 +405,21 @@ def _render_script() -> str:
 def render_shared_header(
     *,
     app_name: str,
-    home_href: str,
+    portal_home_href: str = "/",
+    admin_href: str | None = None,
+    admin_label: str = "Admin",
     primary_links: Iterable[Any] | None = None,
     primary_actions: Iterable[Any] | None = None,
     current_user: Any = None,
     auth_enabled: bool = True,
     user_menu_items: Iterable[Any] | None = None,
-    home_label: str = "Home",
     logo_filename: str = "CPC-Logo.png",
 ) -> Markup:
     logo_href = url_for("shared_media.static", filename=logo_filename)
     nav_links = _normalize_links(primary_links)
     nav_actions = _normalize_actions(primary_actions)
     if auth_enabled and current_user is not None:
-        user_menu_html = _render_user_menu(current_user, user_menu_items)
+        user_menu_html = _render_user_menu(current_user, admin_href, admin_label, user_menu_items)
     else:
         user_menu_html = '<div class="cp-app-header-user-spacer" aria-hidden="true"></div>'
     link_html = "".join(
@@ -370,7 +436,7 @@ def render_shared_header(
 {_render_styles()}
 <header class="cp-app-header">
   <div class="cp-app-header-inner">
-    <a class="cp-app-header-logo-link" href="{escape(home_href)}" aria-label="Home">
+    <a class="cp-app-header-logo-link" href="{escape(portal_home_href)}" aria-label="Portal home">
       <img class="cp-app-header-logo" src="{escape(logo_href)}" alt="Cambridge Picture">
     </a>
     <div class="cp-app-header-title-wrap">
@@ -379,7 +445,6 @@ def render_shared_header(
     {user_menu_html}
   </div>
   <nav class="cp-app-header-nav" aria-label="App navigation">
-    <a class="cp-app-header-home" href="{escape(home_href)}">{escape(home_label)}</a>
     {link_html}
     {action_html}
   </nav>
